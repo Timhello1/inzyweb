@@ -1,5 +1,5 @@
 {
-  "homepage": "https://Timhello1.github.io/Timhello1.github.io",
+  "homepage": "https://timhello1.github.io/Project",
   "name": "untitled2",
   "version": "0.1.0",
   "private": true,
@@ -20,11 +20,10 @@
   "scripts": {
     "start": "react-scripts start",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
+    "deploy": "gh-pages -b main -d build",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
-
   },
   "eslintConfig": {
     "extends": [
