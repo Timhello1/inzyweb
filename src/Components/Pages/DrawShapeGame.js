@@ -1,133 +1,142 @@
-import React, { Component } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
-class ShapeDrawingGame extends Component {
-    state = {
-        drawing: false,
-        path: [],
-        startTime: null,
-        endTime: null,
-        score: 0,
-    };
+const DrawShapeGame = () => {
+    const canvasRef = useRef(null);
+    const [isDrawing, setIsDrawing] = useState(false);
+    const [drawingPath, setDrawingPath] = useState(new Path2D());
+    const [targetPath, setTargetPath] = useState(new Path2D());
+    const [startTime, setStartTime] = useState(0);
+    const [timeTaken, setTimeTaken] = useState(0);
+    const [similarityScore, setSimilarityScore] = useState(0);
 
-    idealShape = [
-        { x: 50, y: 100 },
-        { x: 150, y: 100 },
-        { x: 100, y: 200 },
-        { x: 0, y: 200 },
-    ];
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        const context = canvas.getContext('2d');
 
-    handleMouseDown = () => {
-        this.setState({ drawing: true, path: [], startTime: Date.now(), score: 0 });
-    };
-
-    handleMouseMove = (event) => {
-        if (this.state.drawing) {
-            const { clientX, clientY } = event;
-            this.setState((prevState) => ({
-                path: [...prevState.path, { x: clientX, y: clientY }],
-            }));
-        }
-    };
-
-    handleMouseUp = () => {
-        if (this.state.drawing) {
-            this.setState({ drawing: false, endTime: Date.now() }, () => {
-                this.evaluateShape();
-            });
-        }
-    };
-
-    evaluateShape = () => {
-        const { path, startTime, endTime } = this.state;
-
-        if (!endTime) {
-            return; // Drawing was interrupted before completion
-        }
-
-        const totalPoints = this.idealShape.length;
-
-        // Ensure the path has the same number of points as the ideal shape
-        if (path.length !== totalPoints) {
-            this.setState({ score: 0 });
-            return;
-        }
-
-        // Calculate accuracy
-        const matchingPoints = path.filter((point, index) => {
-            const idealPoint = this.idealShape[index];
-            if (!idealPoint) {
-                return false; // Handle cases where idealPoint is undefined
-            }
-            const distance = Math.sqrt(
-                (point.x - idealPoint.x) ** 2 + (point.y - idealPoint.y) ** 2
-            );
-            return distance < 10; // Define a tolerance for accuracy
-        }).length;
-
-        const accuracy = matchingPoints / totalPoints;
-
-        // Calculate time taken in seconds
-        const timeTaken = (endTime - startTime) / 1000;
-
-        // Calculate speed (number of points per second)
-        const speed = totalPoints / timeTaken;
-
-        // Calculate the score based on accuracy and speed
-        const score = accuracy * speed;
-
-        this.setState({ score });
-    };
+        const shapePath = new Path2D();
+        shapePath.rect(300, 150, 200, 300); // (x, y, width, height)
 
 
-    render() {
-        const { path, drawing, score } = this.state;
+        setTargetPath(shapePath);
 
-        return (
-            <div
-                style={{
-                    width: '100vw',
-                    height: '100vh',
-                    background: '#f0f0f0',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                }}
-            >
-                <div
-                    style={{
-                        width: '300px',
-                        height: '300px',
-                        border: '1px solid #000',
-                        position: 'relative',
-                    }}
-                    onMouseDown={this.handleMouseDown}
-                    onMouseMove={this.handleMouseMove}
-                    onMouseUp={this.handleMouseUp}
-                >
-                    {drawing && (
-                        <svg
-                            width="100%"
-                            height="100%"
-                            style={{ position: 'absolute', top: 0, left: 0 }}
-                        >
-                            {path.map((point, index) => (
-                                <circle
-                                    key={index}
-                                    cx={point.x}
-                                    cy={point.y}
-                                    r="3"
-                                    fill="blue"
-                                />
-                            ))}
-                        </svg>
-                    )}
-                </div>
-                <div style={{ marginTop: '20px' }}>
-                    {score > 0 && <p>Your score: {score.toFixed(2)}</p>}
-                </div>
-            </div>
+        const handleMouseDown = () => {
+            setIsDrawing(true);
+            setDrawingPath(new Path2D());
+            setStartTime(performance.now());
+            setSimilarityScore(0);
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        };
+
+        const handleMouseUp = () => {
+            setIsDrawing(false);
+            calculateSimilarityScore();
+        };
+
+        const handleMouseMove = (event) => {
+            if (!isDrawing) return;
+
+            const currentTime = performance.now();
+            setTimeTaken(currentTime - startTime);
+
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            const newPath = new Path2D(drawingPath);
+            newPath.lineTo(x, y);
+            setDrawingPath(newPath);
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.stroke(targetPath);
+            context.stroke(newPath);
+        };
+
+        context.stroke(targetPath);
+
+        canvas.addEventListener('mousedown', handleMouseDown);
+        canvas.addEventListener('mouseup', handleMouseUp);
+        canvas.addEventListener('mousemove', handleMouseMove);
+
+        return () => {
+            canvas.removeEventListener('mousedown', handleMouseDown);
+            canvas.removeEventListener('mouseup', handleMouseUp);
+            canvas.removeEventListener('mousemove', handleMouseMove);
+        };
+    }, [isDrawing, drawingPath, startTime, targetPath]);
+
+    const calculateSimilarityScore = () => {
+        const drawingPathBounds = calculatePathBounds(drawingPath);
+        const targetPathBounds = calculatePathBounds(targetPath);
+
+        const intersectionRect = new Path2D();
+        intersectionRect.rect(
+            Math.max(drawingPathBounds.x, targetPathBounds.x),
+            Math.max(drawingPathBounds.y, targetPathBounds.y),
+            Math.min(drawingPathBounds.width, targetPathBounds.width),
+            Math.min(drawingPathBounds.height, targetPathBounds.height)
         );
-    }
-}
 
-export default ShapeDrawingGame;
+        const intersectionArea = calculatePathArea(intersectionRect);
+        const drawingArea = calculatePathArea(drawingPath);
+
+        const similarity = intersectionArea / drawingArea;
+        setSimilarityScore(similarity * 100); // Convert to percentage
+    };
+
+
+    const calculatePathBounds = (path) => {
+        const commands = path.toString().split(/[A-Za-z]/);
+        const xValues = [];
+        const yValues = [];
+
+        for (let command of commands) {
+            const coordinates = command.split(',').map(parseFloat);
+            for (let i = 0; i < coordinates.length; i += 2) {
+                xValues.push(coordinates[i]);
+                yValues.push(coordinates[i + 1]);
+            }
+        }
+
+        const minX = Math.min(...xValues);
+        const minY = Math.min(...yValues);
+        const maxX = Math.max(...xValues);
+        const maxY = Math.max(...yValues);
+
+        return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+    };
+
+    const calculatePathArea = (path) => {
+        const context = canvasRef.current.getContext('2d');
+        context.save();
+        context.fillStyle = 'red'; // Choose a color to fill the path
+        context.fill(path);
+
+        const imageData = context.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
+        let filledPixels = 0;
+        for (let i = 0; i < imageData.data.length; i += 4) {
+            if (imageData.data[i] !== 0) {
+                filledPixels++;
+            }
+        }
+
+        context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        context.restore();
+
+        return filledPixels;
+    };
+
+    return (
+        <div>
+            <canvas
+                ref={canvasRef}
+                width={800}
+                height={600}
+                style={{ border: '1px solid black', cursor: 'crosshair' }}
+            />
+            <p>Time Taken: {(timeTaken / 1000).toFixed(2)} seconds</p>
+            <p>Similarity Score: {similarityScore.toFixed(2)}%</p>
+        </div>
+    );
+};
+
+export default DrawShapeGame;

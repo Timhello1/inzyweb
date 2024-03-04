@@ -1,4 +1,7 @@
 import React, { Component } from 'react';
+import {getAuth} from "firebase/auth";
+import {addDoc, collection, getFirestore} from "firebase/firestore";
+import {Link} from "react-router-dom";
 
 class CircleClickerGame extends Component {
     constructor(props) {
@@ -7,6 +10,7 @@ class CircleClickerGame extends Component {
             circlePosition: this.getRandomPosition(),
             score: 0,
             startTime: null,
+            gameCompleted: false,
         };
         this.circleClicked = false; // Flag to track circle click
     }
@@ -46,6 +50,28 @@ class CircleClickerGame extends Component {
         return { x, y };
     }
 
+    savescore = () => {
+        const user = getAuth().currentUser;
+
+        if(user){
+            const userEmail = user.email;
+            const firestore = getFirestore();
+            const scoreTest = collection(firestore, 'CircleClickerTest');
+
+            addDoc(scoreTest,{
+                time: this.calculateElapsedTime(),
+                userEmail: userEmail,
+                timestamp: new Date().toString(),
+            })
+                .then((docRef) => {
+                    console.log('Score saved with ID: ', docRef.id); //wiadomość w konsoli o dodaniu dokumentu
+                })
+                .catch((error) => {
+                    console.error('Error saving score: ', error); //konsolowy komunikat o błędzie
+                });
+        }
+    }
+
     handleCircleClick = () => {
         this.circleClicked = true;
         this.setState(
@@ -55,13 +81,16 @@ class CircleClickerGame extends Component {
             }),
             () => {
                 if (this.state.score >= 10) {
+                    this.savescore();
                     clearInterval(this.timerInterval); // Stop the timer
-                    alert(`Congratulations! You completed the game in ${this.calculateElapsedTime()} seconds.`);
+                    this.setState({ gameCompleted: true });
                 }
                 this.circleClicked = false;
             }
         );
     };
+
+
 
     handleGameAreaClick = (event) => {
         const { clientX, clientY } = event;
@@ -84,7 +113,25 @@ class CircleClickerGame extends Component {
     };
 
     render() {
-        const { circlePosition } = this.state;
+        const { circlePosition, gameCompleted } = this.state;
+
+        if (gameCompleted) {
+            return (
+                <div>
+                    <p>Gratulacje! Ukończono test w  {this.calculateElapsedTime()} sekund.</p>
+                    <Link to="/ClickTestWelcome">
+                        <button type="button">
+                            Spróbuj jeszcze raz
+                        </button>
+                    </Link>
+                    <Link to="/">
+                        <button type="button">
+                            Wróć do Menu głównego
+                        </button>
+                    </Link>
+                </div>
+            );
+        }
 
         const circleStyle = {
             position: 'absolute',
@@ -110,8 +157,8 @@ class CircleClickerGame extends Component {
                 onClick={this.handleGameAreaClick}
             >
                 <div style={circleStyle} onClick={this.handleCircleClick}></div>
-                <p>Score: {this.state.score}</p>
-                <p>Time: {this.calculateElapsedTime()} seconds</p>
+                <p>Punkty: {this.state.score}</p>
+                <p>Czas: {this.calculateElapsedTime()} sekund</p>
             </div>
         );
     }

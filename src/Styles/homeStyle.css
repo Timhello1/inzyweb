@@ -1,0 +1,34 @@
+/* Add this to your CSS file */
+.gamecard {
+    border: 5px solid #000000;
+    padding: 16px;
+    margin: 16px;
+    text-align: center;
+    width: 100%; /* Adjust the width as needed */
+    box-sizing: border-box;
+    box-shadow: 10px 10px 10px 0 #000000;
+    transition: 0.3s;
+    border-radius: 40px;
+    background-color: #999999;
+}
+
+.gamecard img {
+    border: 5px solid #000000;
+    max-width: 100%;
+    height: auto;
+    border-radius: 40px;
+    box-shadow: 0 4px 8px 0 #000000;
+}
+
+.cardcontainer {
+    display: flex; /* Add this line to enable flexbox layout */
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+
+}
+
+.gamecard:hover {
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+

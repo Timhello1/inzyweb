@@ -1,0 +1,17 @@
+.notification {
+    position: fixed;
+    top: 50px; /* Adjust the top position as needed */
+    right: 20px; /* Adjust the right position as needed */
+    background-color: #333;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    animation: slide-in-out 3s ease-in-out;
+}
+
+@keyframes slide-in-out {
+    0%, 100% { transform: translateX(100%); }
+    10%, 90% { transform: translateX(0); }
+}

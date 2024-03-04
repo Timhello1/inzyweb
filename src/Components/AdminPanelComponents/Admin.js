@@ -4,6 +4,8 @@ import {addDoc, collection, getDocs, getFirestore, query, where} from "firebase/
 import * as emailjs from "@emailjs/browser";
 import {toast, ToastContainer} from "react-toastify";
 import "../../Styles/admin.css";
+import {Button, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
+import {Link} from "react-router-dom";
 
 
 export default function Admin() {
@@ -86,19 +88,82 @@ export default function Admin() {
     return (
         <div>
             {isAdmin ? (
-                <div>
-                    <h1>Welcome to the Admin Panel</h1>
+                <div >
+                    <h1>Witaj w panelu Admina</h1>
+                    <TableContainer component={Paper} style={{ maxWidth: "50%",alignItems: "center", display: "flex", margin: "auto" }}>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell style={{ textAlign: "center" }}>Funkcja</TableCell>
+                                    <TableCell style={{ textAlign: "center" }}>Akcja</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell style={{ textAlign: "center" }}>Pytania o uprawnienia</TableCell>
+                                    <TableCell style={{ textAlign: "center" }}>
+                                        <Link to="/admin/inquiries">
+                                            <Button variant="contained" color="primary">
+                                                Odpowiedz
+                                            </Button>
+                                        </Link>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell style={{ textAlign: "center" }}>Spis Użytkowników</TableCell>
+                                    <TableCell style={{ textAlign: "center" }}>
+                                        <Link to="/admin/info">
+                                            <Button variant="contained" color="primary">
+                                                Zobacz
+                                            </Button>
+                                        </Link>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell style={{ textAlign: "center" }}>Graf wyników użytkowników</TableCell>
+                                    <TableCell style={{ textAlign: "center" }}>
+                                        <Link to="/admin/grafForm">
+                                            <Button variant="contained" color="primary">
+                                                Zobacz
+                                            </Button>
+                                        </Link>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell style={{ textAlign: "center" }}>Testy użytkowników</TableCell>
+                                    <TableCell style={{ textAlign: "center" }}>
+                                        <Link to="/admin/TestForm">
+                                            <Button variant="contained" color="primary">
+                                                Zobacz
+                                            </Button>
+                                        </Link>
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell style={{ textAlign: "center" }}>Testy statystyczne</TableCell>
+                                    <TableCell style={{ textAlign: "center" }}>
+                                        <Link to="/admin/stats">
+                                            <Button variant="contained" color="primary">
+                                                Przejdź
+                                            </Button>
+                                        </Link>
+                                    </TableCell>
+                                </TableRow>
+                                {/* Add more rows for other functions */}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
                 </div>
             ) : (
                 <div>
-                    <h1>You do not have permissions to be here</h1>
-                    <p>Ask an admin for permission</p>
+                    <h1>Nie masz uprawnień, aby tu być</h1>
+                    <p>Poproś admina o uprawnienia</p>
                     <form ref={form} onSubmit={sendEmail} className="admin-form">
-                        <label className="form-label">Name</label>
+                        <label className="form-label">Imię i nazwisko</label>
                         <input type="text" name="user_name" className="form-input" />
                         <label className="form-label">Email</label>
                         <input type="email" name="user_email" className="form-input" />
-                        <label className="form-label">Message</label>
+                        <label className="form-label">Wiadomość</label>
                         <textarea name="message" className="form-textarea" />
                         <input type="submit" value="Send" className="form-button" />
                     </form>

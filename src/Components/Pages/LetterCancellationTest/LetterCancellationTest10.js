@@ -1,142 +1,187 @@
 import React, { useState, useEffect } from 'react';
 import '../../../Styles/LetterCancellationTest.css';
-import log from "eslint-plugin-react/lib/util/log";
+import { collection, addDoc } from "firebase/firestore"
+import { getFirestore } from "firebase/firestore"
+import { getAuth } from 'firebase/auth';
+import {Link} from "react-router-dom";
 
-const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; //litery zawarte w tescie
+const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; //zmienna przechowywująca litery występujące w teście
+
 /**
- * Komponent reprezentujący test
+ * Komponent reprezentujący łatwą wersję testu Letter Cancellation
  * @returns {JSX.Element}
  * @constructor
  */
-const LetterCancellationTest = ({numTargets}) => {
-    //zmienne stanów
-    const [targetLetter, setTargetLetter] = useState(''); //szukana litera
-    const [lettersToCross, setLettersToCross] = useState([]); //tablica liter pokazywana na ekranie
-    const [score, setScore] = useState(0); //punktacja użytkownika
-    const [time, setTime] = useState(0); //zaokrąglony czas
-    const [isActive, setIsActive] = useState(false); //aktywność testu
-    const [clickedIndexes, setClickedIndexes] = useState([]); //indeksy klikniętych liter
-    const [remainingLetters, setRemainingLetters] = useState(0); //litery pozostałe do kliknięcia
-    /**
-     * Hook zajmujący się odmierzaniem czasu
-     */
+const LetterCancellationTest10 = () => {
+    const [targetLetter, setTargetLetter] = useState(''); //stan szukanej litery
+    const [lettersToCross, setLettersToCross] = useState([]); //lista liter do skreślenia
+    const [score, setScore] = useState(0); //stan znalezionych liter
+    const [time, setTime] = useState(0); //czas trwania testu
+    const [isActive, setIsActive] = useState(true); //stan aktywności testu
+    const [clickedIndexes, setClickedIndexes] = useState([]); //stan klikniętych liter
+    const [remainingLetters, setRemainingLetters] = useState(0); //stan pozostałych do znalezienia liter
+    const [showFinishScreen, setShowFinishScreen] = useState(false); //stan wyświetlenia końcowego ekranu
+
     useEffect(() => {
+        //hook uruchamiający się przy aktywnym teście
         if (isActive) {
-            //zacznij timer jeśli gra jest aktywna
+            //Przy aktywnym teście uruchamiany jest timer
             const timer = setInterval(() => {
-                setTime(prevTime => prevTime + 1); //inkrementacja czasu o jedną sekundę
-            }, 1000); //interwał 1000 ms
-            return () => clearInterval(timer); //zerowanie timera
+                setTime(prevTime => prevTime + 1);
+            }, 1000); //zwiększanie czasu o 1 co 1000 ms
+            return () => clearInterval(timer); //czyszczenie timera przy wyłączaniu komponentu
         }
     }, [isActive]);
 
-    /**
-     * Hook szykujący plansze testu
-     */
     useEffect(() => {
-        // Generowanie nowej tablicy liter
-        const randomArray = [];
-        const targetCount = numTargets;
-        const otherCount = 96 - targetCount;
-        const randomIndex = Math.floor(Math.random() * letters.length);
-        const target = letters[randomIndex];
+        const user = getAuth().currentUser;
 
-        setTargetLetter(target);
+        const saveScoreAndShowFinishScreen = () => {
+            if (user) {
+                const userEmail = user.email;
+                if (score === 0) {
+                    saveScore(score, userEmail, time);
+                } else {
+                    saveScore(score, userEmail, time);
+                }
+            }
 
-        for (let i = 0; i < targetCount; i++){
-            randomArray.push(target);
+            setShowFinishScreen(true);
+        };
+
+        if (!isActive) {
+            saveScoreAndShowFinishScreen();
         }
 
-        for (let i = 0; i < otherCount; i++){
-            const randomIndex = Math.floor(Math.random() * letters.length);
-            randomArray.push(letters[randomIndex]);
+    }, [isActive, score, time]);
+
+    useEffect(() => {
+        //hook uruchamiany przy inicjalizacji komponentu
+        const randomArray = []; //pusta tablica na losowe litery
+        const targetCount = 10; //liczba szukanych liter
+        const otherCount = 96 - targetCount; //liczba pozostałych liter
+        const randomIndex = Math.floor(Math.random() * letters.length); //losowany index szukanej litery z alfabetu
+        const target = letters[randomIndex]; //wybierana losowa litera
+        const modifiedLetters = letters.replace(new RegExp(target, 'g'), ''); //szukana litera usuwana jest z alfabetu
+
+        setTargetLetter(target); //ustawienie szukanej litery w stanie
+
+        for (let i = 0; i < targetCount; i++) {
+            randomArray.push(target); //dodawanie szukanych liter do tablicy
         }
 
-        for(let i = randomArray.length - 1; i > 0; i--){
-            const j = Math.floor(Math.random() * (i + 1));
-            [randomArray[i],randomArray[j]] = [randomArray[j], randomArray[i]];
+        for (let i = 0; i < otherCount; i++) {
+            const randomIndex = Math.floor(Math.random() * modifiedLetters.length); //losowanie indeksu innej litery
+            randomArray.push(modifiedLetters[randomIndex]); //dodanie jej do tablicy
         }
 
-        setLettersToCross(randomArray); //ustawienie liter
+        for (let i = randomArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1)); //losowanie indeksu j
+            [randomArray[i], randomArray[j]] = [randomArray[j], randomArray[i]]; //zamiana miejscami liter w tablicy
+        }
 
-        console.log(randomArray)
+        setLettersToCross(randomArray); //ustawienie tablicy do stanu
 
-        // Ustawienie pozostałych liter jako liczba szukanych liter
-        setRemainingLetters(targetCount);
+        setRemainingLetters(targetCount); //ustawienie liczby pozostałych liter
+        setScore(0); //początkowy licznik znalezionych liter
+        setTime(0); //początkowy czas
+        setIsActive(true); //uruchamiany test
+        setClickedIndexes([]); //wyczyszczenie tablicy klikniętych indeksów
 
-        // Reset
-        setScore(0);
-        setTime(0);
-        setIsActive(true); //Start gry
-        setClickedIndexes([]);
-
-        // Po 60 sekundach skończ grę
         const timeout = setTimeout(() => {
-            setIsActive(false);
+            //timer po 60 sekundach przerywa test
+            setIsActive(false); //wyłączenie testu
         }, 60000);
 
-        return () => clearTimeout(timeout);
-    }, [numTargets]);
-
+        return () => clearTimeout(timeout); //wyczyść timer
+    }, []);
     /**
-     * kliknięcie litery
+     * funkcja obsługująca kliknięcie litery
      * @param letter
      * @param index
      */
     const handleLetterClick = (letter, index) => {
-        if (letter === targetLetter && !clickedIndexes.includes(index)) {
-            //jeśli litera jest szukana oraz nie znajduje się w klikniętych indeksach
-            setClickedIndexes(prevIndexes => [...prevIndexes, index]); //dodanie indeksu do klikniętych indeksów
-            setRemainingLetters(prevRemaining => prevRemaining - 1); //dekrementacja pozostałych liter
-            setScore(prevScore => prevScore + 1); //inkrementacja punktacji
+        if (letter === targetLetter && !clickedIndexes.includes(index)) { //jeśli kniknięta jest właściwa litera i niekliknięto jej wcześniej
+            setClickedIndexes(prevIndexes => [...prevIndexes, index]); //dodanie indeksu do tablicy klikniętych indeksów
+            setRemainingLetters(prevRemaining => prevRemaining - 1);//zmniejszenie liczby pozostałych liter
+            setScore(prevScore => prevScore + 1); //zwiększenie znalezionych liter
 
-            if (remainingLetters === 1) {
-                setIsActive(false);
+            if (remainingLetters === 1) { //jeśli jest to ostatnia litera do znalezienie
+                setIsActive(false); //wyłącz test
             }
         }
     };
     /**
-     * render komponentu
+     * funkcja obsługująca zapis wyników
+     * @param score
+     * @param userEmail
+     * @param time
+     */
+    const saveScore = (score, userEmail, time) => {
+        const firestore = getFirestore(); //dostęp do firestore
+        const scoreTest = collection(firestore, 'LetterCancel10Score'); //zdefiniowanie kolekcji wyników
+
+        addDoc(scoreTest, { //dodanie wyniku w dokumencie z poniższymi polami
+            score: score,
+            time: time,
+            userEmail: userEmail,
+            timestamp: new Date().toString(),
+        })
+            .then((docRef) => {
+                console.log('Score saved with ID: ', docRef.id); //konsolowy komunikat o zapisaniu wyniku
+            })
+            .catch((error) => {
+                console.error('Error saving score: ', error); //konsolowy komunikat o błędzie
+            });
+    };
+    /**
+     * część renderująca
      */
     return (
         <div className="letter-cancellation-container">
-            <div className="grid-container">
-                {/* mapowanie przez tablice liter */}
-                {lettersToCross.map((letter, index) => (
-                    <div
-                        key={index} //unikalny klucz dla każdej komórki
-                        className={`grid-cell ${
-                            letter === targetLetter ? 'target-letter' : '' //dodaj klasę targetletter 
-                        } ${clickedIndexes.includes(index) ? 'clicked' : ''}`} //dodaj klasę clicked
-                        onClick={() => {
-                            if (letter === targetLetter) {
-                                handleLetterClick(letter, index); //event kliknięcia
-                            }
-                        }}
-                    >
-                        {letter} {/* wyświetlenie litery w komórce */}
+            {showFinishScreen ? (
+                <div className="finish-screen">
+                    <p>Test Ukończony!</p>
+                    <p>Znaleziono: {score}    /10</p>
+                    <p>Czas: {time} sekund</p>
+                    <Link to="/LetterCancellationTestWelcome">
+                        <button type="button">
+                            Spróbuj jeszcze raz
+                        </button>
+                    </Link>
+                    <Link to="/">
+                        <button type="button">
+                            Wróć do menu głównego
+                        </button>
+                    </Link>
+                </div>
+            ) : (
+                <>
+                    <div className="grid-container">
+                        {lettersToCross.map((letter, index) => (
+                            <div
+                                key={index}
+                                className={`grid-cell ${
+                                    letter === targetLetter ? 'target-letter' : ''
+                                } ${clickedIndexes.includes(index) ? 'clicked' : ''}`}
+                                onClick={() => {
+                                    if (letter === targetLetter) {
+                                        handleLetterClick(letter, index);
+                                    }
+                                }}
+                            >
+                                {letter}
+                            </div>
+                        ))}
                     </div>
-                ))}
-            </div>
-            <div className="info-container">
-                {isActive ? (
-                    <div>
-                        <p>Target Letter: {targetLetter}</p>
-                        <p>array: {lettersToCross}</p>
-                        <p>array: {}</p>
-                        <p>Score: {score}</p>
-                        <p>Time: {time} seconds</p>
+                    <div className="info-container">
+                        <p>Szukana litera: {targetLetter}</p>
+                        <p>Czas: {time} sekund</p>
                     </div>
-                ) : (
-                    <div className="finish-screen">
-                        <p>Test Completed!</p>
-                        <p>Final Score: {score}</p>
-                        <p>Time Taken: {time} seconds</p>
-                    </div>
-                )}
-            </div>
+                </>
+            )}
         </div>
     );
 };
 
-export default LetterCancellationTest;
+export default LetterCancellationTest10;

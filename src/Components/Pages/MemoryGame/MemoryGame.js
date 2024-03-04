@@ -1,6 +1,6 @@
 import  React, {PureComponent} from "react";
-import Card from "../MemoryGameComponents/Card";
-import "../../Styles/memoryGameStyles.css";
+import Card from "../../MemoryGameComponents/Card";
+import "../../../Styles/memoryGameStyles.css";
 
 class MemoryGame extends PureComponent {
 

@@ -1,0 +1,46 @@
+.letter-cancellation-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    max-width: 400px;
+    margin: 0 auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 10px;
+}
+
+.grid-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: 1px solid #ccc;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.grid-cell.target-letter {
+    color: black;
+}
+
+.grid-cell.clicked {
+    background-color: #f0ad4e;
+    color: white;
+    cursor: default;
+}
+
+.info-container {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.finish-screen {
+    margin-top: 20px;
+}

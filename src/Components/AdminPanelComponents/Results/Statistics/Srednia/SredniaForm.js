@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-const ShapiroForm = () => {
+const SredniaForm = () => {
     const navigate = useNavigate(); // Use useNavigate instead of useHistory
     const [selectedOption, setSelectedOption] = useState('');
     const [startTime, setStartTime] = useState('');
@@ -24,61 +24,61 @@ const ShapiroForm = () => {
         // Add logic to determine the route based on the selected option
         switch (selectedOption) {
             case 'Test Zwinności':
-                navigate(`/shapiroClick?startTime=${startTime}&endTime=${endTime}&collectionName=CircleClickerTest`);
+                navigate(`/średniaClick?startTime=${startTime}&endTime=${endTime}&collectionName=CircleClickerTest`);
                 break;
             case 'Test Stroopa':
-                navigate(`/shapiroStroop?startTime=${startTime}&endTime=${endTime}&collectionName=scoresStroopTest`);
+                navigate(`/średniaStroop?startTime=${startTime}&endTime=${endTime}&collectionName=scoresStroopTest`);
                 break;
             case 'Test Reitana':
-                navigate(`/shapiroReitan?startTime=${startTime}&endTime=${endTime}&collectionName=ReitanTest`);
+                navigate(`/średniaReitan?startTime=${startTime}&endTime=${endTime}&collectionName=ReitanTest`);
                 break;
             case 'Test Zmiennej Ścieżki':
-                navigate(`/shapiroSwitch?startTime=${startTime}&endTime=${endTime}&collectionName=SwitchTrailTest`);
+                navigate(`/średniaSwitch?startTime=${startTime}&endTime=${endTime}&collectionName=SwitchTrailTest`);
                 break;
             case 'Test szyfrowania (łatwy)':
-                navigate(`/shapiroSUB10?startTime=${startTime}&endTime=${endTime}&collectionName=DigitalSub10`);
+                navigate(`/średniaSUB10?startTime=${startTime}&endTime=${endTime}&collectionName=DigitalSub10`);
                 break;
             case 'Test szyfrowania (średni)':
-                navigate(`/shapiroSUB20?startTime=${startTime}&endTime=${endTime}&collectionName=DigitalSub20`);
+                navigate(`/średniaSUB20?startTime=${startTime}&endTime=${endTime}&collectionName=DigitalSub20`);
                 break;
             case 'Test szyfrowania (trudny)':
-                navigate(`/shapiroSUB30?startTime=${startTime}&endTime=${endTime}&collectionName=DigitalSub30`);
+                navigate(`/średniaSUB30?startTime=${startTime}&endTime=${endTime}&collectionName=DigitalSub30`);
                 break;
             case 'Test anulowania liter (łatwy) (czas)':
-                navigate(`/shapiroLCT5?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel5Score`);
+                navigate(`/średniaLCT5?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel5Score`);
                 break;
             case 'Test anulowania liter (średni) (czas)':
-                navigate(`/shapiroLCT8?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel8Score`);
+                navigate(`/średniaLCT8?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel8Score`);
                 break;
             case 'Test anulowania liter (trudny) (czas)':
-                navigate(`/shapiroLCT10?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel10Score`);
+                navigate(`/średniaLCT10?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel10Score`);
                 break;
             case 'Test Skanu pamięci (łatwy)':
-                navigate(`/shapiroMS4?startTime=${startTime}&endTime=${endTime}&collectionName=MemoryScan4`);
+                navigate(`/średniaMS4?startTime=${startTime}&endTime=${endTime}&collectionName=MemoryScan4`);
                 break;
             case 'Test Skanu pamięci (średni)':
-                navigate(`/shapiroMS6?startTime=${startTime}&endTime=${endTime}&collectionName=MemoryScan6`);
+                navigate(`/średniaMS6?startTime=${startTime}&endTime=${endTime}&collectionName=MemoryScan6`);
                 break;
             case 'Test Skanu pamięci (trudny)':
-                navigate(`/shapiroMS10?startTime=${startTime}&endTime=${endTime}&collectionName=MemoryScan10`);
+                navigate(`/średniaMS10?startTime=${startTime}&endTime=${endTime}&collectionName=MemoryScan10`);
                 break;
             case 'Test anulowania liter (łatwy) (punkty)':
-                navigate(`/shapiroLCS5?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel5Score`);
+                navigate(`/średniaLCS5?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel5Score`);
                 break;
             case 'Test anulowania liter (średni) (punkty)':
-                navigate(`/shapiroLCS8?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel8Score`);
+                navigate(`/średniaLCS8?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel8Score`);
                 break;
             case 'Test anulowania liter (trudny) (punkty)':
-                navigate(`/shapiroLCS10?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel10Score`);
+                navigate(`/średniaLCS10?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel10Score`);
                 break;
             case 'Test anulowania liter (łatwy) (złożenie)':
-                navigate(`/shapiroLCB5?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel5Score`);
+                navigate(`/średniaLCB5?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel5Score`);
                 break;
             case 'Test anulowania liter (średni) (złożenie)':
-                navigate(`/shapiroLCB8?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel8Score`);
+                navigate(`/średniaLCB8?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel8Score`);
                 break;
             case 'Test anulowania liter (trudny) (złożenie)':
-                navigate(`/shapiroLCB10?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel10Score`);
+                navigate(`/średniaLCB10?startTime=${startTime}&endTime=${endTime}&collectionName=LetterCancel10Score`);
                 break;
             default:
                 toast.error('Wybierz jeden z wyborów');
@@ -147,4 +147,4 @@ const ShapiroForm = () => {
     );
 };
 
-export default ShapiroForm;
+export default SredniaForm;

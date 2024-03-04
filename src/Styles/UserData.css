@@ -1,0 +1,10 @@
+.chart-container {
+    display: flex;
+    justify-content: center; /* Horizontally center the chart */
+    align-items: center; /* Vertically center the chart */
+    height: 100vh; /* Make the container cover the full viewport height */
+}
+
+.chart {
+    text-align: center; /* Horizontally center the chart within its container */
+}

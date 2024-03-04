@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "fir-668e8",
+    "demo": "fir-668e8"
+  },
+  "targets": {},
+  "etags": {}
+}

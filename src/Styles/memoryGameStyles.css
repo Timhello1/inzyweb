@@ -1,0 +1,68 @@
+body {
+    margin: 0;
+}
+
+.grid-container {
+    display: grid;
+    grid-gap: 1px;
+    grid-template-columns: auto auto auto auto;
+    padding: 10px 150px 10px 150px;
+}
+
+
+
+.grid-item {
+    border: 1px solid rgba(0, 0, 0, 0.8);
+}
+
+.justify-left {
+    text-align: left
+}
+
+.justify-end {
+    text-align: right;
+}
+
+.justify-center {
+    text-align: center;
+}
+
+.timer {
+    color: #5168e9;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+
+
+.game-status-text {
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    color: rgb(24, 21, 16);
+    font-weight: bold;
+}
+
+.card {
+    width: 100%;
+    height: 10em;
+    background-color: rgb(75, 42, 165);
+    color: white;
+    font-size: 15px;
+}
+
+.hide-card {
+    visibility: hidden;
+}
+
+.card-front {
+    background-color: #999999;
+    box-shadow: 5px 5px 5px rgba(68, 68, 68, 0.6);
+}
+
+.card-back {
+    font-weight: bold;
+}
+
+
+.react-card-front {
+    position: unset;
+}

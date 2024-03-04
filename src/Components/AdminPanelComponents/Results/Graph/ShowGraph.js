@@ -1,100 +1,127 @@
-import React, { useEffect, useState } from "react";
-import { collection, query, getFirestore, getDocs } from "firebase/firestore";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import "../../../Styles/UserData.css";
+import React, { useEffect, useState } from 'react';
+import { getFirestore, collection, query, getDocs } from 'firebase/firestore';
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+} from 'recharts';
 
 const ShowGraph = ({ collectionName }) => {
-    const [userData, setUserData] = useState([]);
-    const firestore = getFirestore();
-    const [yAxisDomain, setYAxisDomain] = useState([0, 1]); // Initial domain for Y-axis
+    const [dataSets, setDataSets] = useState([]);
 
     useEffect(() => {
         const fetchData = async () => {
-            const q = query(collection(firestore, collectionName));
-
             try {
+                const db = getFirestore();
+                const collectionRef = collection(db, collectionName);
+                const q = query(collectionRef);
+
                 const querySnapshot = await getDocs(q);
 
-                if (!querySnapshot.empty) {
-                    const data = querySnapshot.docs.map(doc => {
-                        const docData = doc.data();
-                        const timestamp = new Date(docData.timestamp);
+                const data = querySnapshot.docs.map((doc) => {
+                    const docData = doc.data();
+                    const timestamp = new Date(docData.timestamp);
 
-                        // Extract year, month, day, hour, minute, and second
-                        const year = timestamp.getFullYear();
-                        const month = timestamp.getMonth() + 1; // Months are 0-based
-                        const day = timestamp.getDate();
-                        const hour = timestamp.getHours();
-                        const minute = timestamp.getMinutes();
-                        const second = timestamp.getSeconds();
+                    return {
+                        ...docData,
+                        timestamp,
+                    };
+                });
 
-                        return {
-                            ...docData,
-                            year,
-                            month,
-                            day,
-                            hour,
-                            minute,
-                            second
-                        };
-                    });
+                // Sort the data by timestamp in ascending order
+                data.sort((a, b) => a.timestamp - b.timestamp);
 
-                    // Group data by userEmail
-                    const groupedData = data.reduce((acc, item) => {
-                        const userEmail = item.userEmail;
-                        if (!acc[userEmail]) {
-                            acc[userEmail] = [];
-                        }
-                        acc[userEmail].push(item);
-                        return acc;
-                    }, {});
+                const sets = {};
 
-                    const timeValues = data.map(item => item.time);
-                    const minY = Math.min(...timeValues);
-                    const maxY = Math.max(...timeValues);
+                data.forEach(({ userEmail, timestamp, time }) => {
+                    if (!sets[userEmail]) {
+                        sets[userEmail] = [];
+                    }
 
-                    setYAxisDomain([minY, maxY]);
+                    sets[userEmail].push({ timestamp, time });
+                });
 
-                    setUserData(Object.entries(groupedData));
-                } else {
-                    setUserData([]);
-                }
+                setDataSets(Object.entries(sets));
             } catch (error) {
-                console.error('Error fetching user data', error);
+                console.error('Error fetching data:', error);
             }
         };
 
         fetchData();
-    }, [collectionName, firestore]);
+    }, [collectionName]);
+
+    // Combine all sets into a single dataset for the combined graph
+    const combinedData = dataSets.reduce((combinedData, [userEmail, data]) => {
+        data.forEach(({ timestamp, time }) => {
+            const entry = combinedData.find((entry) => entry.timestamp === timestamp);
+            if (!entry) {
+                combinedData.push({ timestamp });
+            }
+            combinedData.forEach((entry) => {
+                if (entry.timestamp === timestamp) {
+                    entry[userEmail] = time;
+                }
+            });
+        });
+        return combinedData;
+    }, []);
+
+    // Sort combinedData by timestamp in ascending order
+    combinedData.sort((a, b) => a.timestamp - b.timestamp);
 
     return (
-        <div className="chart-container">
-            {userData.length > 0 ? (
-                <div className="chart">
-                    <LineChart width={window.innerWidth * 0.8} height={400}>
-                        <XAxis dataKey="timestamp" tick={{ fontSize: 0.1 }} interval={0} angle={45} textAnchor="start" />
-                        <YAxis domain={yAxisDomain} />
-                        <CartesianGrid stroke="#ccc" />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            {dataSets.map(([userEmail, data], index) => (
+                <div key={index} style={{ marginBottom: '20px' }}>
+                    <h2>User Email: {userEmail}</h2>
+                    <LineChart
+                        width={600}
+                        height={300}
+                        data={data}
+                        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="timestamp"  label={{ value: 'data', position: 'insideBottom' }} tick={() => null}/>
+                        <YAxis label={{ value: 'czas [s]', angle: -90, position: 'insideLeft' }}/>
                         <Tooltip />
-                        <Legend />
-                        {userData.map(([userEmail, userDataSet]) => (
-                            <Line
-                                key={userEmail}
-                                type="monotone"
-                                dataKey="time"
-                                data={userDataSet}
-                                name={userEmail}
-                                stroke={`#${Math.floor(Math.random()*16777215).toString(16)}`} // Random color for each user
-                                activeDot={{ r: 8 }}
-                            />
-                        ))}
+                        <Line
+                            type="monotone"
+                            dataKey="time"
+                            name={`Set for ${userEmail}`}
+                            stroke={`#${Math.floor(Math.random() * 16777215).toString(16)}`}
+                        />
                     </LineChart>
                 </div>
-            ) : (
-                <p>No data available for the current user</p>
-            )}
+            ))}
+            <div style={{ marginBottom: '20px' }}>
+                <h2>Combined Graph</h2>
+                <LineChart
+                    width={1400}
+                    height={700}
+                    data={combinedData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="timestamp" label={{ value: 'data', position: 'insideBottom'}} tick={() => null}/>
+                    <YAxis label={{ value: 'czas [s]', angle: -90, position: 'insideLeft' }}/>
+                    <Tooltip />
+                    {dataSets.map(([userEmail], index) => (
+                        <Line
+                            key={index}
+                            type="monotone"
+                            dataKey={userEmail}
+                            name={`Set for ${userEmail}`}
+                            stroke={`#${Math.floor(Math.random() * 16777215).toString(16)}`}
+                        />
+                    ))}
+                </LineChart>
+            </div>
         </div>
     );
 };
 
-export default ShowGraph();
+export default ShowGraph;

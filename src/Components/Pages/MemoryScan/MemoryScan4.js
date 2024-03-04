@@ -2,93 +2,105 @@ import React, { useState, useEffect } from 'react';
 import Modal from 'react-modal';
 import {getAuth} from "firebase/auth";
 import {addDoc, collection, getFirestore} from "firebase/firestore";
+import {Link, useHistory} from 'react-router-dom';
 
-Modal.setAppElement('#root'); // Set the root element for accessibility
+Modal.setAppElement('#root'); // Ustawienie głównego elementu aplikacji dla Modala
 
 /**
- * Komponent odpowiadaj
- * @returns {JSX.Element}
+ * Komponent odpowiadający za test Stenberga Memory Scan
+ * @returns {JSX.Element} - zwrot elementu renderowania
  * @constructor
  */
 const SternbergMemoryScan = () => {
-    const items = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I','J','K','L'];
-    const [sequence, setSequence] = useState([]);
-    const [showSequence, setShowSequence] = useState(true);
-    const [currentElementIndex, setCurrentElementIndex] = useState(0);
-    const [userResponses, setUserResponses] = useState([]);
-    const [rightCount, setRightCount] = useState(0);
-    const [wrongCount, setWrongCount] = useState(0);
-    const [modalIsOpen, setModalIsOpen] = useState(false);
-    const [shuffledItems, setShuffledItems] = useState([]);
+    const items = ['A', 'B', 'C', 'D', 'E', 'F', 'G','H','I','J','K','L']; //zebranie liter występujących w tescie
+    const [sequence, setSequence] = useState([]); //stan przechowywujący sekwencję
+    const [showSequence, setShowSequence] = useState(true); //stan czy pokazać sekwencję
+    const [currentElementIndex, setCurrentElementIndex] = useState(0); //stan przechowywujący indeks aktualnego elementu
+    const [userResponses, setUserResponses] = useState([]); // Stan przechowujący odpowiedzi użytkownika
+    const [rightCount, setRightCount] = useState(0); // Licznik prawidłowych odpowiedzi
+    const [wrongCount, setWrongCount] = useState(0); // Licznik nieprawidłowych odpowiedzi
+    const [modalIsOpen, setModalIsOpen] = useState(false); // Stan określający, czy modal jest otwarty
+    const [shuffledItems, setShuffledItems] = useState([]); // Losowa permutacja elementów
 
     useEffect(() => {
         generateRandomSequence();
         shuffleItems();
     }, []);
 
+    /**
+     * Funkcja generująca sekwencję
+     */
     const generateRandomSequence = () => {
-        const uniqueRandomIndexes = [];
-        while (uniqueRandomIndexes.length < 4) {
-            const randomIndex = Math.floor(Math.random() * items.length);
-            if (!uniqueRandomIndexes.includes(randomIndex)) {
-                uniqueRandomIndexes.push(randomIndex);
+        const uniqueRandomIndexes = []; //pusta tablica na unikalne indeksy
+        while (uniqueRandomIndexes.length < 4) { //wykonywana aż nie uzbiera 4 indeksów
+            const randomIndex = Math.floor(Math.random() * items.length); //losowanie indeksu
+            if (!uniqueRandomIndexes.includes(randomIndex)) { //sprawdzanie czy już nie wykorzystany
+                uniqueRandomIndexes.push(randomIndex); //dodanie indkesu do tablicy
             }
         }
-        const randomElements = uniqueRandomIndexes.map((index) => items[index]);
-        setSequence(randomElements);
-        setShowSequence(true);
-        setUserResponses([]);
-        setCurrentElementIndex(0);
+        const randomElements = uniqueRandomIndexes.map((index) => items[index]); //tablica losowych elementów
+        setSequence(randomElements); //ustawienie wygenerowanej sekwencji
+        setShowSequence(true); //stan pokazawania sekwencji
+        setUserResponses([]); //czyszczenie tablicy odpowiedzi
+        setCurrentElementIndex(0); //aktuallny indeks 0
     };
-
+    /**
+     * Funkcja tasująca elementy w liście
+     */
     const shuffleItems = () => {
-        // Fisher-Yates shuffle algorithm
+        // tasujący algorytm Fisher-Yates
         const array = [...items];
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [array[i], array[j]] = [array[j], array[i]];
         }
-        setShuffledItems(array);
+        setShuffledItems(array); //ustawienie tablicy
     };
-
+    /**
+     * Funkcja chowająca sekwencję
+     */
     const handleUnderstood = () => {
-        setShowSequence(false);
+        setShowSequence(false); //ustawienie stanu na false
     };
-
+    /**
+     * Obsługa odpowiedzi użytkownika
+     * @param isInSequence - boolean (czy dany element jest w sekwencji)
+     */
     const handleResponse = (isInSequence) => {
-        const updatedResponses = [...userResponses, isInSequence];
-        setCurrentElementIndex(currentElementIndex + 1);
+        const updatedResponses = [...userResponses, isInSequence]; //dodanie odpowiedzi do zbioru
+        setCurrentElementIndex(currentElementIndex + 1); //inkrement indeksu
 
-        if (currentElementIndex + 1 >= items.length) {
+        if (currentElementIndex + 1 >= items.length) { //Sprawdzenie czy wszystkie elementy zostały pokazane użytkownikowi
             const rightResponses = updatedResponses.reduce((count, response, index) => {
-                const itemWasInSequence = sequence.includes(shuffledItems[index]);
-                return count + (response === itemWasInSequence);
+                const itemWasInSequence = sequence.includes(shuffledItems[index]); //sprawdzenie czy element był w sekwencji
+                return count + (response === itemWasInSequence); //zwiększenie licznika prawidłowych odpowiedzi
             }, 0);
 
-            setRightCount(rightResponses);
-            setWrongCount(items.length - rightResponses);
-            setModalIsOpen(true);
+            setRightCount(rightResponses); //ustawienie liczby prawidłowych odpowiedzi
+            setWrongCount(items.length - rightResponses); //ustawienie nieprawidłowych odpowiedzi
+            setModalIsOpen(true); //otwarcie modala z wynikami
         }
 
-        setUserResponses(updatedResponses);
+        setUserResponses(updatedResponses); //ustawienie zaktualizowych odpowiedzi
     };
-
+    /**
+     * Funkcja zapisująca wynik w bazie danych
+     */
     const savescore = () => {
-        const user = getAuth().currentUser;
+        const user = getAuth().currentUser; //pozyskanie aktualnie zalogowanego użytkownika
 
-        if(user){
-            const userEmail = user.email;
-            const firestore = getFirestore();
-            const scoreTest = collection(firestore, 'MemoryScan4');
+        if(user){ //jeśli użytkownik jest zalogowany
+            const userEmail = user.email; //pozyskanie maila zalogowanego użytkownika
+            const firestore = getFirestore(); //referencja firestore
+            const scoreTest = collection(firestore, 'MemoryScan4'); //nazwa kolekcji
 
-            addDoc(scoreTest,{
-                right: rightCount,
-                wrong: wrongCount,
+            addDoc(scoreTest,{ //dodanie dokumentu z podanymi polami
+                score: rightCount - wrongCount,
                 userEmail: userEmail,
-                timestamp: new Date(),
+                timestamp: new Date().toString(),
             })
                 .then((docRef) => {
-                    console.log('Score saved with ID: ', docRef.id);
+                    console.log('Score saved with ID: ', docRef.id); //wiadomość w konsoli o dodaniu dokumentu
                 })
                 .catch((error) => {
                     console.error('Error saving score: ', error); //konsolowy komunikat o błędzie
@@ -97,7 +109,9 @@ const SternbergMemoryScan = () => {
         }
     }
 
-
+    /**
+     * Funkcja obsługująca zamknięcie modalu
+     */
     const closeModal = () => {
         setModalIsOpen(false);
         generateRandomSequence();
@@ -105,21 +119,25 @@ const SternbergMemoryScan = () => {
         savescore();
     };
 
+    const handleLinkClick = () => {
+        closeModal(); // Call your closeModal function
+    };
+
     return (
         <div>
-            <h2>Sternberg Memory Scanning Task</h2>
+            <h2>Zadanie skanowania pamięci według Sternberga</h2>
             {showSequence ? (
                 <div>
-                    <p>Sequence: {sequence.join(', ')}</p>
-                    <button onClick={handleUnderstood}>Understood</button>
+                    <p>Sekwencja: {sequence.join(', ')}</p>
+                    <button onClick={handleUnderstood}>Rozumiem</button>
                 </div>
             ) : (
                 <div>
                     {currentElementIndex < items.length ? (
                         <div>
-                            <p>Was the element "{shuffledItems[currentElementIndex]}" in the sequence?</p>
-                            <button onClick={() => handleResponse(true)}>Yes</button>
-                            <button onClick={() => handleResponse(false)}>No</button>
+                            <p>Czy element "{shuffledItems[currentElementIndex]}" Jest w sekwencji?</p>
+                            <button onClick={() => handleResponse(true)}>Tak</button>
+                            <button onClick={() => handleResponse(false)}>Nie</button>
                         </div>
                     ) : (
                         <Modal
@@ -129,14 +147,25 @@ const SternbergMemoryScan = () => {
                         >
                             <h2>Results</h2>
                             {rightCount === items.length ? (
-                                <p>Well done! You correctly identified all elements in the sequence.</p>
+                                    <p>Brawo! Nie popełniłeś żadnych błędów.</p>
                             ) : (
                                 <div>
-                                    <p>Right responses: {rightCount}</p>
-                                    <p>Wrong responses: {wrongCount}</p>
+                                    <p>Prawidłowe odpowiedzi: {rightCount}</p>
+                                    <p>Nieprawidłowe odpowiedzi: {wrongCount}</p>
                                 </div>
                             )}
-                            <button onClick={closeModal}>Close</button>
+                            <div onClick={handleLinkClick}>
+                                <Link to="/MemoryScanWelcome">
+                                    <button type="button">
+                                        Spróbuj ponownie
+                                    </button>
+                                </Link>
+                                <Link to="/">
+                                    <button type="button">
+                                        Wróć do menu głównego
+                                    </button>
+                                </Link>
+                            </div>
                         </Modal>
                     )}
                 </div>
